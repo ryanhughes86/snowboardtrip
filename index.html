@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mayrhofen & Hintertux Snowboard Trip Planner</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            glacier: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+            },
+            board: {
+              900: '#0a0f1d',
+              850: '#0f172a',
+              800: '#1e293b',
+              700: '#334155',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #090d16;
+      color: #f1f5f9;
+    }
+    input[type=range] {
+      accent-color: #38bdf8;
+    }
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #38bdf8;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#090d16] text-slate-100 antialiased selection:bg-cyan-500 selection:text-black">
+
+  <!-- Header Banner -->
+  <header class="border-b border-slate-800 bg-[#0d1424]/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="p-2 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/20 text-white">
+          <i data-lucide="snowflake" class="w-6 h-6 animate-pulse"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-bold text-white tracking-tight">Hintertux & Mayrhofen</h1>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800">Mid-Dec 2026</span>
+          </div>
+          <p class="text-xs text-slate-400">Budget Snowpark & Runs Trip Estimator (2 Riders)</p>
+        </div>
+      </div>
+
+      <!-- Quick Preset Actions -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-xs text-slate-400 font-medium mr-1 hidden sm:inline">Load Preset:</span>
+        <button onclick="applyPreset('cheapest')" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all hover:border-cyan-500/50 flex items-center gap-1.5">
+          <i data-lucide="zap" class="w-3.5 h-3.5 text-yellow-400"></i> Cheapest Possible (~£750)
+        </button>
+        <button onclick="applyPreset('optimal5')" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all hover:border-cyan-500/50 flex items-center gap-1.5">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-cyan-400"></i> Optimal 5-Night Shred (~£800)
+        </button>
+        <button onclick="applyPreset('fullweek')" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all hover:border-cyan-500/50 flex items-center gap-1.5">
+          <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400"></i> Full 7-Night Week (~£940)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+    <div class="flex space-x-2 border-b border-slate-800 overflow-x-auto pb-1">
+      <button onclick="switchTab('calculator')" id="tab-btn-calculator" class="tab-button px-4 py-2 text-sm font-semibold rounded-t-lg transition-colors border-b-2 border-cyan-400 text-cyan-400 bg-slate-800/40 flex items-center gap-2">
+        <i data-lucide="calculator" class="w-4 h-4"></i> Interactive Calculator
+      </button>
+      <button onclick="switchTab('lodging')" id="tab-btn-lodging" class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg transition-colors border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+        <i data-lucide="home" class="w-4 h-4"></i> Lodging Comparison (Bahnhof)
+      </button>
+      <button onclick="switchTab('mountain')" id="tab-btn-mountain" class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg transition-colors border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+        <i data-lucide="mountain-snow" class="w-4 h-4"></i> Mountain & Park Intel
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- TAB 1: INTERACTIVE CALCULATOR -->
+    <div id="tab-calculator" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- Configuration Controls (Left 7 Cols) -->
+      <div class="lg:col-span-7 space-y-6">
+
+        <!-- Trip Duration Selector -->
+        <div class="bg-board-850 p-5 rounded-2xl border border-slate-800 shadow-sm">
+          <div class="flex justify-between items-center mb-3">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+              <i data-lucide="clock" class="w-4 h-4 text-cyan-400"></i> 1. Trip Duration & Snow Time
+            </h2>
+            <span id="badge-leave" class="text-xs font-medium px-2.5 py-1 rounded-md bg-amber-950 text-amber-300 border border-amber-800 flex items-center gap-1">
+              <i data-lucide="briefcase" class="w-3 h-3"></i> 5 Days Work Leave (Mon–Fri)
+            </span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <button type="button" onclick="setDuration(5, 4)" id="dur-btn-5" class="dur-btn text-left p-3.5 rounded-xl border border-slate-700 bg-slate-800 hover:border-cyan-500 transition-all">
+              <div class="text-xs text-slate-400">Short Hit</div>
+              <div class="font-bold text-white text-base">5 Nights</div>
+              <div class="text-xs text-cyan-400 font-semibold mt-1">4 Full Days Riding</div>
+            </button>
+
+            <button type="button" onclick="setDuration(6, 5)" id="dur-btn-6" class="dur-btn text-left p-3.5 rounded-xl border border-slate-700 bg-slate-800 hover:border-cyan-500 transition-all">
+              <div class="text-xs text-slate-400">Balanced</div>
+              <div class="font-bold text-white text-base">6 Nights</div>
+              <div class="text-xs text-cyan-400 font-semibold mt-1">5 Full Days Riding</div>
+            </button>
+
+            <button type="button" onclick="setDuration(7, 6)" id="dur-btn-7" class="dur-btn text-left p-3.5 rounded-xl border-2 border-cyan-400 bg-cyan-950/20 hover:border-cyan-500 transition-all">
+              <div class="text-xs text-slate-400">Full Week</div>
+              <div class="font-bold text-white text-base">7 Nights</div>
+              <div class="text-xs text-cyan-400 font-semibold mt-1">6 Full Days Riding</div>
+            </button>
+          </div>
+          <p class="text-xs text-slate-500 mt-2.5 italic">
+            *Riding days exclude arrival & departure days for zero stress and clean transit.
+          </p>
+        </div>
+
+        <!-- Flight & Airport Route Selector -->
+        <div class="bg-board-850 p-5 rounded-2xl border border-slate-800 shadow-sm">
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2 mb-3">
+            <i data-lucide="plane" class="w-4 h-4 text-cyan-400"></i> 2. Choose Flight & Transit Route
+          </h2>
+
+          <div class="space-y-2.5" id="flights-container">
+            <!-- Flight Card 1: BHX - SZG Ryanair -->
+            <label class="flight-option block p-3.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-800 cursor-pointer transition-all border-cyan-500 bg-cyan-950/10">
+              <div class="flex items-start justify-between">
+                <div class="flex items-center gap-3">
+                  <input type="radio" name="flight_choice" value="bhx_szg_sat" onchange="updateCalc()" checked class="w-4 h-4 text-cyan-500 focus:ring-0 bg-slate-900 border-slate-600">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-white text-sm">BHX ➔ Salzburg (SZG)</span>
+                      <span class="text-xs px-2 py-0.5 bg-emerald-950 text-emerald-300 rounded border border-emerald-800 font-semibold">Cheapest Base Fare</span>
+                    </div>
+                    <div class="text-xs text-slate-400 mt-0.5">Sat 12 – Sat 19 Dec (7N) • Ryanair Direct • 11:30 dep / 15:10 ret</div>
+                    <div class="text-xs text-cyan-400 mt-1 flex items-center gap-1">
+                      <i data-lucide="train" class="w-3 h-3"></i> Transfer: ~2h scenic train via Jenbach (~£38 return)
+                    </div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="text-base font-bold text-white">£67.50</div>
+                  <div class="text-[11px] text-slate-400">per person</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Flight Card 2: MAN - INN easyJet Mon-Sat -->
+            <label class="flight-option block p-3.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-800 cursor-pointer transition-all">
+              <div class="flex items-start justify-between">
+                <div class="flex items-center gap-3">
+                  <input type="radio" name="flight_choice" value="man_inn_mon_sat" onchange="updateCalc()" class="w-4 h-4 text-cyan-500 focus:ring-0 bg-slate-900 border-slate-600">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-white text-sm">MAN ➔ Innsbruck (INN)</span>
+                      <span class="text-xs px-2 py-0.5 bg-blue-950 text-blue-300 rounded border border-blue-800 font-semibold">5-Night Shred</span>
+                    </div>
+                    <div class="text-xs text-slate-400 mt-0.5">Mon 14 – Sat 19 Dec (5N) • easyJet Direct • 06:10 dep / 10:05 ret</div>
+                    <div class="text-xs text-cyan-400 mt-1 flex items-center gap-1">
+                      <i data-lucide="train" class="w-3 h-3"></i> Transfer: 50 min direct train (~£30 return)
+                    </div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="text-base font-bold text-white">£106.00</div>
+                  <div class="text-[11px] text-slate-400">per person</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Flight Card 3: MAN - INN easyJet Mon-Mon -->
+            <label class="flight-option block p-3.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-800 cursor-pointer transition-all">
+              <div class="flex items-start justify-between">
+                <div class="flex items-center gap-3">
+                  <input type="radio" name="flight_choice" value="man_inn_mon_mon" onchange="updateCalc()" class="w-4 h-4 text-cyan-500 focus:ring-0 bg-slate-900 border-slate-600">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-white text-sm">MAN ➔ Innsbruck (INN)</span>
+                      <span class="text-xs px-2 py-0.5 bg-slate-700 text-slate-300 rounded font-semibold">Mon–Mon 7N</span>
+                    </div>
+                    <div class="text-xs text-slate-400 mt-0.5">Mon 14 – Mon 21 Dec (7N) • easyJet Direct • 06:10 dep / 10:05 ret</div>
+                    <div class="text-xs text-cyan-400 mt-1 flex items-center gap-1">
+                      <i data-lucide="train" class="w-3 h-3"></i> Transfer: 50 min direct train (~£30 return)
+                    </div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="text-base font-bold text-white">£130.00</div>
+                  <div class="text-[11px] text-slate-400">per person</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Flight Card 4: MAN - INN easyJet Sun-Sun -->
+            <label class="flight-option block p-3.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-800 cursor-pointer transition-all">
+              <div class="flex items-start justify-between">
+                <div class="flex items-center gap-3">
+                  <input type="radio" name="flight_choice" value="man_inn_sun_sun" onchange="updateCalc()" class="w-4 h-4 text-cyan-500 focus:ring-0 bg-slate-900 border-slate-600">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-white text-sm">MAN ➔ Innsbruck (INN)</span>
+                      <span class="text-xs px-2 py-0.5 bg-purple-950 text-purple-300 rounded border border-purple-800 font-semibold">Weekend-to-Weekend</span>
+                    </div>
+                    <div class="text-xs text-slate-400 mt-0.5">Sun 13 – Sun 20 Dec (7N) • easyJet Direct • 07:30 dep / 11:30 ret</div>
+                    <div class="text-xs text-cyan-400 mt-1 flex items-center gap-1">
+                      <i data-lucide="train" class="w-3 h-3"></i> Transfer: 50 min direct train (~£30 return)
+                    </div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="text-base font-bold text-white">£170.50</div>
+                  <div class="text-[11px] text-slate-400">per person</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Flight Card 5: Sat-Sat Jet2 Options (Expandable/Optional) -->
+            <label class="flight-option block p-3.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-800 cursor-pointer transition-all">
+              <div class="flex items-start justify-between">
+                <div class="flex items-center gap-3">
+                  <input type="radio" name="flight_choice" value="man_inn_jet2" onchange="updateCalc()" class="w-4 h-4 text-cyan-500 focus:ring-0 bg-slate-900 border-slate-600">
+                  <div>
+                    <div class="font-bold text-white text-sm">MAN ➔ Innsbruck (INN) • Jet2</div>
+                    <div class="text-xs text-slate-400 mt-0.5">Sat 12 – Sat 19 Dec (7N) • Includes 22kg hold bag allowance</div>
+                    <div class="text-xs text-cyan-400 mt-1 flex items-center gap-1">
+                      <i data-lucide="train" class="w-3 h-3"></i> Transfer: 50 min train (~£30 return)
+                    </div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="text-base font-bold text-white">£251.50</div>
+                  <div class="text-[11px] text-slate-400">per person</div>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Board Bag Toggle -->
+          <div class="mt-4 pt-3.5 border-t border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i data-lucide="luggage" class="w-4 h-4 text-cyan-400"></i>
+              <div>
+                <span class="text-sm font-semibold text-white">Add Snowboard Bag (Return)</span>
+                <p class="text-xs text-slate-400">20–22kg sports equipment carriage per person</p>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="check-boardbag" checked onchange="updateCalc()" class="sr-only peer">
+              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Accommodation Tier & Food Budget -->
+        <div class="bg-board-850 p-5 rounded-2xl border border-slate-800 shadow-sm space-y-5">
+          <div>
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2 mb-3">
+              <i data-lucide="bed" class="w-4 h-4 text-cyan-400"></i> 3. Lodging Tier (Split between 2)
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <label class="lodging-tier-card block p-3 rounded-xl border border-slate-700 bg-slate-800 hover:border-cyan-500 cursor-pointer transition-all">
+                <input type="radio" name="lodging_tier" value="32" onchange="updateCalc()" class="sr-only">
+                <div class="font-bold text-sm text-white">Guesthouse / B&B</div>
+                <div class="text-xs text-cyan-400 font-semibold mt-0.5">~£32/night/person</div>
+                <div class="text-[11px] text-slate-400 mt-1.5">Obermair / Birkenhof (B&B)</div>
+              </label>
+
+              <label class="lodging-tier-card block p-3 rounded-xl border-2 border-cyan-400 bg-cyan-950/20 hover:border-cyan-500 cursor-pointer transition-all">
+                <input type="radio" name="lodging_tier" value="42" onchange="updateCalc()" checked class="sr-only">
+                <div class="font-bold text-sm text-white">Self-Catered Studio</div>
+                <div class="text-xs text-cyan-400 font-semibold mt-0.5">~£42/night/person</div>
+                <div class="text-[11px] text-slate-400 mt-1.5">Glück Auf / Eberharter</div>
+              </label>
+
+              <label class="lodging-tier-card block p-3 rounded-xl border border-slate-700 bg-slate-800 hover:border-cyan-500 cursor-pointer transition-all">
+                <input type="radio" name="lodging_tier" value="58" onchange="updateCalc()" class="sr-only">
+                <div class="font-bold text-sm text-white">Premium Apartment</div>
+                <div class="text-xs text-cyan-400 font-semibold mt-0.5">~£58/night/person</div>
+                <div class="text-[11px] text-slate-400 mt-1.5">Sauna, central Bahnhof hub</div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Daily Spending / Food Slider -->
+          <div class="pt-2 border-t border-slate-800">
+            <div class="flex justify-between items-center mb-1.5">
+              <label for="food-slider" class="text-xs font-semibold uppercase text-slate-400 flex items-center gap-1.5">
+                <i data-lucide="utensils" class="w-3.5 h-3.5 text-cyan-400"></i> Daily Food, Lunches & Beers (Per Person):
+              </label>
+              <span id="food-val-label" class="text-sm font-bold text-white bg-slate-800 px-2.5 py-0.5 rounded border border-slate-700">£20 / day</span>
+            </div>
+            <input type="range" id="food-slider" min="12" max="45" value="20" step="1" oninput="updateFoodLabel(this.value); updateCalc();" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+            <div class="flex justify-between text-[11px] text-slate-500 mt-1">
+              <span>£12 (Pure Spar/Billa self-catering)</span>
+              <span>£25 (Lunches + Après pints)</span>
+              <span>£45 (Glacier restaurant daily)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Live Cost Breakdown Sticky Card (Right 5 Cols) -->
+      <div class="lg:col-span-5">
+        <div class="sticky top-24 space-y-4">
+
+          <div class="bg-gradient-to-b from-board-850 to-board-900 border border-slate-700/80 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+            <!-- Background Glow -->
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+              <span class="text-xs font-bold uppercase tracking-wider text-cyan-400">Estimated Total Cost</span>
+              <span class="text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700 font-medium">Split between 2</span>
+            </div>
+
+            <!-- Main Big Numbers -->
+            <div class="py-5 text-center">
+              <div class="text-xs text-slate-400 uppercase font-semibold tracking-wide">Per Person All-In</div>
+              <div class="text-5xl font-extrabold text-white tracking-tight mt-1" id="cost-per-person">£918</div>
+              <div class="text-xs text-slate-400 mt-1.5">
+                Total for both of you: <span class="font-bold text-slate-200" id="cost-for-two">£1,836</span>
+              </div>
+            </div>
+
+            <!-- Line Items Breakdown -->
+            <div class="space-y-2.5 text-xs border-t border-slate-800 pt-4">
+              <div class="flex justify-between text-slate-300">
+                <span class="flex items-center gap-1.5"><i data-lucide="plane" class="w-3.5 h-3.5 text-cyan-400"></i> Return Flight Base Fare</span>
+                <span class="font-semibold text-white" id="row-flight">£67.50</span>
+              </div>
+              <div class="flex justify-between text-slate-300">
+                <span class="flex items-center gap-1.5"><i data-lucide="luggage" class="w-3.5 h-3.5 text-cyan-400"></i> Board Bag Return (Hold)</span>
+                <span class="font-semibold text-white" id="row-boardbag">£75.00</span>
+              </div>
+              <div class="flex justify-between text-slate-300">
+                <span class="flex items-center gap-1.5"><i data-lucide="train" class="w-3.5 h-3.5 text-cyan-400"></i> Return Airport Train</span>
+                <span class="font-semibold text-white" id="row-transfer">£38.00</span>
+              </div>
+              <div class="flex justify-between text-slate-300">
+                <span class="flex items-center gap-1.5"><i data-lucide="bed" class="w-3.5 h-3.5 text-cyan-400"></i> <span id="row-lodging-label">7 Nights Lodging</span></span>
+                <span class="font-semibold text-white" id="row-lodging">£294.00</span>
+              </div>
+              <div class="flex justify-between text-slate-300">
+                <span class="flex items-center gap-1.5"><i data-lucide="ticket" class="w-3.5 h-3.5 text-cyan-400"></i> <span id="row-pass-label">6-Day Superskipass</span></span>
+                <span class="font-semibold text-white" id="row-pass">£340.00</span>
+              </div>
+              <div class="flex justify-between text-slate-300">
+                <span class="flex items-center gap-1.5"><i data-lucide="bus" class="w-3.5 h-3.5 text-cyan-400"></i> Green Line Glacier Ski Bus</span>
+                <span class="font-bold text-emerald-400">FREE</span>
+              </div>
+              <div class="flex justify-between text-slate-300">
+                <span class="flex items-center gap-1.5"><i data-lucide="coffee" class="w-3.5 h-3.5 text-cyan-400"></i> Food, Lunches & Spending</span>
+                <span class="font-semibold text-white" id="row-food">£140.00</span>
+              </div>
+            </div>
+
+            <!-- WhatsApp Export Button -->
+            <div class="mt-6 pt-4 border-t border-slate-800">
+              <button onclick="copyTripSummary()" id="copy-summary-btn" class="w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-lg shadow-emerald-950 flex items-center justify-center gap-2">
+                <i data-lucide="copy" class="w-4 h-4"></i> Copy Summary for WhatsApp
+              </button>
+              <div id="copy-confirmation" class="text-[11px] text-emerald-400 text-center font-medium mt-2 hidden">
+                ✓ Copied to clipboard! Send directly to your mate.
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Quick Tip Card -->
+          <div class="p-4 rounded-xl bg-board-850 border border-slate-800 text-xs text-slate-400 flex items-start gap-3">
+            <i data-lucide="info" class="w-4 h-4 text-cyan-400 shrink-0 mt-0.5"></i>
+            <div>
+              <span class="font-semibold text-slate-200">The 6-Day Pass Hack:</span> 
+              A 5-day pass costs €372.50 while a 6-day costs €399. For only ~£23 extra, you get a full extra day of riding on 7-night trips.
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: LODGING COMPARISON (BAHNHOF HUB) -->
+    <div id="tab-lodging" class="hidden space-y-6">
+      
+      <div class="bg-board-850 p-6 rounded-2xl border border-slate-800">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2.5">
+          <i data-lucide="map-pin" class="w-5 h-5 text-cyan-400"></i> Mayrhofen Station Accommodations (Budget Focus)
+        </h2>
+        <p class="text-xs text-slate-400 mt-1 max-w-3xl">
+          Staying within 8 minutes of Mayrhofen Bahnhof is the sweet spot: step off the Innsbruck/Salzburg train, hop straight on the free Green Line ski bus to Hintertux Glacier, and stay seconds from Spar and Billa supermarkets.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Property 1: Apart-Garni Glück Auf -->
+        <div class="bg-board-850 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">Rider Top Pick</span>
+                <h3 class="font-bold text-base text-white mt-1.5">Hotel & Suites Glück Auf (Apart-Garni)</h3>
+                <p class="text-xs text-slate-400">Self-Catered Holiday Apartments & Suites</p>
+              </div>
+              <div class="text-right">
+                <span class="text-base font-extrabold text-white">~£40–£55</span>
+                <span class="block text-[10px] text-slate-400">/ person / night (split by 2)</span>
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-300 mt-3 leading-relaxed">
+              Purpose-built for independent winter sports trips. Studio units feature equipped kitchenettes (stovetop, microwave, fridge, coffee machine) so you can cook hot dinners and pack mountain lunches. Includes a dedicated basement ski room with heated boot dryers, sauna facilities, and morning fresh bread service.
+            </p>
+
+            <div class="mt-3.5 flex flex-wrap items-center gap-4 text-xs text-slate-300">
+              <span class="flex items-center gap-1"><i data-lucide="footprints" class="w-3.5 h-3.5 text-cyan-400"></i> 6 min walk to station / Green Line</span>
+              <span class="flex items-center gap-1"><i data-lucide="utensils" class="w-3.5 h-3.5 text-cyan-400"></i> Private Kitchenette</span>
+              <span class="flex items-center gap-1"><i data-lucide="flame" class="w-3.5 h-3.5 text-cyan-400"></i> Heated Boot Dryers</span>
+            </div>
+
+            <!-- Pros & Cons -->
+            <div class="mt-4 space-y-2 text-xs">
+              <div class="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-900/50 text-emerald-200 flex items-start gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+                <span><strong>Pros:</strong> Full cooking freedom cuts daily food spend to £10–£15; heated boot room; easy walking route to station.</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-rose-950/30 border border-rose-900/50 text-rose-200 flex items-start gap-2">
+                <i data-lucide="x" class="w-4 h-4 text-rose-400 shrink-0 mt-0.5"></i>
+                <span><strong>Cons:</strong> Kitchen clean-up required before departure; early-season studio slots fill up rapidly.</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Direct Links -->
+          <div class="mt-4 pt-3.5 border-t border-slate-800 flex items-center justify-between text-xs">
+            <span class="text-slate-400">Check Availability:</span>
+            <div class="flex items-center gap-2">
+              <a href="https://www.booking.com/hotel/at/garni-gla1-4ck-auf.en-gb.html" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-md bg-blue-600 hover:bg-blue-500 text-white font-medium flex items-center gap-1 transition-all">
+                Booking.com <i data-lucide="external-link" class="w-3 h-3"></i>
+              </a>
+              <a href="https://www.mayrhofen.at/en/service-providers/hotel-garni-glueck-auf-38817" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium flex items-center gap-1 transition-all">
+                Mayrhofen.at (Direct) <i data-lucide="external-link" class="w-3 h-3"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Property 2: Pension Obermair -->
+        <div class="bg-board-850 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">Lowest Outright Price</span>
+                <h3 class="font-bold text-base text-white mt-1.5">Pension Bergsteiger-Zimmer Obermair</h3>
+                <p class="text-xs text-slate-400">Mountaineer Guesthouse / B&B</p>
+              </div>
+              <div class="text-right">
+                <span class="text-base font-extrabold text-white">~£32–£42</span>
+                <span class="block text-[10px] text-slate-400">/ person / night (split by 2)</span>
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-300 mt-3 leading-relaxed">
+              A classic Tyrolean rider and climber institution. Simple, unpretentious private twin rooms in a quiet position just off the main road. The daily buffet breakfast is included, leaving you only having to sort snacks on the glacier and evening dinners in town.
+            </p>
+
+            <div class="mt-3.5 flex flex-wrap items-center gap-4 text-xs text-slate-300">
+              <span class="flex items-center gap-1"><i data-lucide="footprints" class="w-3.5 h-3.5 text-cyan-400"></i> 6 min walk to station</span>
+              <span class="flex items-center gap-1"><i data-lucide="coffee" class="w-3.5 h-3.5 text-cyan-400"></i> Breakfast Included</span>
+              <span class="flex items-center gap-1"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-cyan-400"></i> Ski/Board Storage</span>
+            </div>
+
+            <!-- Pros & Cons -->
+            <div class="mt-4 space-y-2 text-xs">
+              <div class="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-900/50 text-emerald-200 flex items-start gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+                <span><strong>Pros:</strong> Outright cheapest private room in Mayrhofen; generous breakfast buffet fuels your morning laps.</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-rose-950/30 border border-rose-900/50 text-rose-200 flex items-start gap-2">
+                <i data-lucide="x" class="w-4 h-4 text-rose-400 shrink-0 mt-0.5"></i>
+                <span><strong>Cons:</strong> No kitchen facilities for dinner; lowest-tier economy rooms share a floor bathroom.</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Direct Links -->
+          <div class="mt-4 pt-3.5 border-t border-slate-800 flex items-center justify-between text-xs">
+            <span class="text-slate-400">Check Availability:</span>
+            <div class="flex items-center gap-2">
+              <a href="https://www.mayrhofen.at/en/accommodations" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium flex items-center gap-1 transition-all">
+                Search Obermair on Mayrhofen.at <i data-lucide="external-link" class="w-3 h-3"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Property 3: Hotel Garni Birkenhof -->
+        <div class="bg-board-850 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Alpine Comfort</span>
+                <h3 class="font-bold text-base text-white mt-1.5">Hotel Garni Birkenhof</h3>
+                <p class="text-xs text-slate-400">Family-Run Tyrolean Bed & Breakfast</p>
+              </div>
+              <div class="text-right">
+                <span class="text-base font-extrabold text-white">~£38–£50</span>
+                <span class="block text-[10px] text-slate-400">/ person / night (split by 2)</span>
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-300 mt-3 leading-relaxed">
+              Quiet, pristine Tyrolean guesthouse featuring spacious en-suite twin/double bedrooms with balconies looking out toward Mount Ahorn. Fresh Austrian breakfast buffet included every morning. Offers an on-site sauna, secure board storage, and heated boot warmers.
+            </p>
+
+            <div class="mt-3.5 flex flex-wrap items-center gap-4 text-xs text-slate-300">
+              <span class="flex items-center gap-1"><i data-lucide="footprints" class="w-3.5 h-3.5 text-cyan-400"></i> 8 min flat walk to Bahnhof</span>
+              <span class="flex items-center gap-1"><i data-lucide="coffee" class="w-3.5 h-3.5 text-cyan-400"></i> Breakfast Included</span>
+              <span class="flex items-center gap-1"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-cyan-400"></i> Sauna Access</span>
+            </div>
+
+            <!-- Pros & Cons -->
+            <div class="mt-4 space-y-2 text-xs">
+              <div class="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-900/50 text-emerald-200 flex items-start gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+                <span><strong>Pros:</strong> Quality breakfast buffet, quiet balcony rooms, and relaxing post-park sauna.</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-rose-950/30 border border-rose-900/50 text-rose-200 flex items-start gap-2">
+                <i data-lucide="x" class="w-4 h-4 text-rose-400 shrink-0 mt-0.5"></i>
+                <span><strong>Cons:</strong> No kitchen; slightly further walk to the station bus loop (8 minutes vs. 5–6 minutes).</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Direct Links -->
+          <div class="mt-4 pt-3.5 border-t border-slate-800 flex items-center justify-between text-xs">
+            <span class="text-slate-400">Check Availability:</span>
+            <div class="flex items-center gap-2">
+              <a href="https://www.booking.com/hotel/at/pension-birkenhof.de.html" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-md bg-blue-600 hover:bg-blue-500 text-white font-medium flex items-center gap-1 transition-all">
+                Booking.com <i data-lucide="external-link" class="w-3 h-3"></i>
+              </a>
+              <a href="https://www.birkenhof.cc" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium flex items-center gap-1 transition-all">
+                Birkenhof.cc (Direct) <i data-lucide="external-link" class="w-3 h-3"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Property 4: Apartments Eberharter -->
+        <div class="bg-board-850 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">Town & Grocery Hub</span>
+                <h3 class="font-bold text-base text-white mt-1.5">Apartments Eberharter</h3>
+                <p class="text-xs text-slate-400">Self-Contained Town Flats</p>
+              </div>
+              <div class="text-right">
+                <span class="text-base font-extrabold text-white">~£42–£55</span>
+                <span class="block text-[10px] text-slate-400">/ person / night (split by 2)</span>
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-300 mt-3 leading-relaxed">
+              Practical holiday flats located centrally on the valley floor. Features fully self-contained studio layouts with dedicated cooking stations, fridge, private bathrooms, and ski storage. Positioned just 3 minutes from Billa supermarket for cheap evening groceries.
+            </p>
+
+            <div class="mt-3.5 flex flex-wrap items-center gap-4 text-xs text-slate-300">
+              <span class="flex items-center gap-1"><i data-lucide="footprints" class="w-3.5 h-3.5 text-cyan-400"></i> 7 min to station / 3 min to Billa</span>
+              <span class="flex items-center gap-1"><i data-lucide="utensils" class="w-3.5 h-3.5 text-cyan-400"></i> Private Kitchenette</span>
+              <span class="flex items-center gap-1"><i data-lucide="shopping-bag" class="w-3.5 h-3.5 text-cyan-400"></i> Seconds to Supermarket</span>
+            </div>
+
+            <!-- Pros & Cons -->
+            <div class="mt-4 space-y-2 text-xs">
+              <div class="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-900/50 text-emerald-200 flex items-start gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+                <span><strong>Pros:</strong> Immediate grocery access saves tons of walking carrying heavy bags; complete cooking independence.</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-rose-950/30 border border-rose-900/50 text-rose-200 flex items-start gap-2">
+                <i data-lucide="x" class="w-4 h-4 text-rose-400 shrink-0 mt-0.5"></i>
+                <span><strong>Cons:</strong> Stricter minimum stay windows during some December weeks.</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Direct Links -->
+          <div class="mt-4 pt-3.5 border-t border-slate-800 flex items-center justify-between text-xs">
+            <span class="text-slate-400">Check Availability:</span>
+            <div class="flex items-center gap-2">
+              <a href="https://www.mayrhofen.at/en/accommodations" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium flex items-center gap-1 transition-all">
+                Search Eberharter on Mayrhofen.at <i data-lucide="external-link" class="w-3 h-3"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 3: MOUNTAIN & PARK INTEL -->
+    <div id="tab-mountain" class="hidden space-y-6">
+      
+      <!-- Top Glacier Banner -->
+      <div class="bg-gradient-to-r from-blue-950 via-board-850 to-slate-900 border border-cyan-900/50 p-6 rounded-2xl">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-400 text-black">100% Guaranteed Snow</span>
+              <span class="text-xs text-slate-400">3,250m Glacier Altitude</span>
+            </div>
+            <h2 class="text-xl font-extrabold text-white mt-1">Betterpark Hintertux + Mount Penken</h2>
+            <p class="text-xs text-slate-300 mt-1 max-w-2xl">
+              Why this beats France or Salzburg in mid-December: you get permanent autumn-built glacier kickers at Hintertux plus local tree runs in Mayrhofen.
+            </p>
+          </div>
+          <div class="text-right">
+            <span class="text-xs text-slate-400 block">Zillertal Superskipass:</span>
+            <span class="text-lg font-bold text-cyan-400">~200 km Open Terrain</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Comparison Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Betterpark Hintertux -->
+        <div class="bg-board-850 border border-slate-800 rounded-2xl p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-white text-base flex items-center gap-2">
+              <i data-lucide="flame" class="w-4 h-4 text-orange-400"></i> Betterpark Hintertux (Glacier)
+            </h3>
+            <span class="text-xs bg-slate-800 px-2.5 py-1 rounded text-cyan-300 font-medium border border-slate-700">3,200m Peak</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            The park is built right onto glacier ice and is fully operating long before mid-December.
+          </p>
+          <ul class="text-xs text-slate-300 space-y-1.5 list-disc list-inside">
+            <li><strong>Setup:</strong> Pro jump line, medium kicker line, easy line, and large multi-tier jib/rail racks.</li>
+            <li><strong>Dedicated Lift:</strong> Olperer drag lifts lap directly through the park so you don't waste time riding down.</li>
+            <li><strong>Logistics:</strong> Take the free Green Line ski bus from Mayrhofen Bahnhof (35–40 mins scenic valley drive).</li>
+          </ul>
+        </div>
+
+        <!-- PenkenPark Mayrhofen -->
+        <div class="bg-board-850 border border-slate-800 rounded-2xl p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-white text-base flex items-center gap-2">
+              <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i> PenkenPark & Local Runs
+            </h3>
+            <span class="text-xs bg-slate-800 px-2.5 py-1 rounded text-cyan-300 font-medium border border-slate-700">Local Mountain</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            The week before Christmas, Mayrhofen's valley lifts (Penkenbahn & Horbergbahn) open for winter operations.
+          </p>
+          <ul class="text-xs text-slate-300 space-y-1.5 list-disc list-inside">
+            <li><strong>Runs:</strong> 142 km of pistes, wide tree-lined carving groomers, and the infamous 78% steep *Harakiri*.</li>
+            <li><strong>Park Setup:</strong> Early-season medium jump, beginner tables, and rainbow boxes right off the Sun-Jet chair.</li>
+            <li><strong>Zero Commute:</strong> On bad weather/flat light days, ride Penken without taking the bus to the glacier.</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Why not Morzine or Salzburg in mid-December -->
+      <div class="bg-board-850 border border-slate-800 rounded-2xl p-5">
+        <h3 class="font-bold text-sm text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i> Why Alternative Destinations Were Excluded
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+            <span class="font-bold text-white block mb-1">Morzine / Avoriaz</span>
+            <p class="text-slate-400">
+              Town elevation is low (1,000m). Snow down in town is hit-or-miss mid-Dec. Avoriaz park is only small beginner rails with no full jump lines built yet.
+            </p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+            <span class="font-bold text-white block mb-1">Tignes (France)</span>
+            <p class="text-slate-400">
+              High elevation ensures snow, but Geneva airport transfers run £130–£160+ and resort food is significantly higher than Austria, pushing costs to £1,300+.
+            </p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+            <span class="font-bold text-white block mb-1">Salzburg Resorts (Flachau/Saalbach)</span>
+            <p class="text-slate-400">
+              Low base altitudes (800–1,000m). Even if cruising pistes open via cannons, major parks (*Absolut Park*) don't finish full jump builds until late December.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Dynamic Logic & State Handler -->
+  <script>
+    // State Store
+    const state = {
+      nights: 7,
+      ridingDays: 6,
+      flightKey: 'bhx_szg_sat',
+      hasBoardBag: true,
+      lodgingPerNight: 42,
+      dailyFood: 20
+    };
+
+    // Database of Flights & Transfers
+    const flightsDB = {
+      'bhx_szg_sat': {
+        name: 'BHX ➔ Salzburg (SZG)',
+        airline: 'Ryanair Direct',
+        dates: 'Sat 12 – Sat 19 Dec (7N)',
+        baseFare: 67.50,
+        boardBagCost: 75.00,
+        transferCost: 38.00,
+        transferName: 'Train via Jenbach (~2h)',
+        durationFit: 7
+      },
+      'man_inn_mon_sat': {
+        name: 'MAN ➔ Innsbruck (INN)',
+        airline: 'easyJet Direct',
+        dates: 'Mon 14 – Sat 19 Dec (5N)',
+        baseFare: 106.00,
+        boardBagCost: 80.00,
+        transferCost: 30.00,
+        transferName: 'Train to Mayrhofen (50m)',
+        durationFit: 5
+      },
+      'man_inn_mon_mon': {
+        name: 'MAN ➔ Innsbruck (INN)',
+        airline: 'easyJet Direct',
+        dates: 'Mon 14 – Mon 21 Dec (7N)',
+        baseFare: 130.00,
+        boardBagCost: 80.00,
+        transferCost: 30.00,
+        transferName: 'Train to Mayrhofen (50m)',
+        durationFit: 7
+      },
+      'man_inn_sun_sun': {
+        name: 'MAN ➔ Innsbruck (INN)',
+        airline: 'easyJet Direct',
+        dates: 'Sun 13 – Sun 20 Dec (7N)',
+        baseFare: 170.50,
+        boardBagCost: 80.00,
+        transferCost: 30.00,
+        transferName: 'Train to Mayrhofen (50m)',
+        durationFit: 7
+      },
+      'man_inn_jet2': {
+        name: 'MAN ➔ Innsbruck (INN)',
+        airline: 'Jet2 Direct',
+        dates: 'Sat 12 – Sat 19 Dec (7N)',
+        baseFare: 251.50,
+        boardBagCost: 0.00, // 22kg baggage included in package
+        transferCost: 30.00,
+        transferName: 'Train to Mayrhofen (50m)',
+        durationFit: 7
+      }
+    };
+
+    // Lift Pass Rates (€ converted to GBP @ ~0.85)
+    const passRates = {
+      4: 260.00, // €305.50
+      5: 317.00, // €372.50
+      6: 340.00  // €399.00
+    };
+
+    function setDuration(nights, ridingDays) {
+      state.nights = nights;
+      state.ridingDays = ridingDays;
+
+      // Update Duration Button Styles
+      [5, 6, 7].forEach(n => {
+        const btn = document.getElementById(`dur-btn-${n}`);
+        if (n === nights) {
+          btn.className = 'dur-btn text-left p-3.5 rounded-xl border-2 border-cyan-400 bg-cyan-950/20 hover:border-cyan-500 transition-all';
+        } else {
+          btn.className = 'dur-btn text-left p-3.5 rounded-xl border border-slate-700 bg-slate-800 hover:border-cyan-500 transition-all';
+        }
+      });
+
+      // Update Leave Badge
+      const badge = document.getElementById('badge-leave');
+      if (nights === 5) {
+        badge.innerHTML = '<i data-lucide="briefcase" class="w-3 h-3"></i> 5 Days Work Leave (Mon–Fri) • Back for Sunday';
+      } else {
+        badge.innerHTML = '<i data-lucide="briefcase" class="w-3 h-3"></i> 5 Days Work Leave (Mon–Fri)';
+      }
+      lucide.createIcons();
+
+      updateCalc();
+    }
+
+    function updateFoodLabel(val) {
+      document.getElementById('food-val-label').innerText = `£${val} / day`;
+      state.dailyFood = parseInt(val, 10);
+    }
+
+    function updateCalc() {
+      // 1. Flight Selection
+      const selectedFlightRadio = document.querySelector('input[name="flight_choice"]:checked');
+      if (selectedFlightRadio) {
+        state.flightKey = selectedFlightRadio.value;
+      }
+      const flightInfo = flightsDB[state.flightKey] || flightsDB['bhx_szg_sat'];
+
+      // 2. Board Bag Toggle
+      const bagCheckbox = document.getElementById('check-boardbag');
+      state.hasBoardBag = bagCheckbox ? bagCheckbox.checked : true;
+
+      // 3. Lodging Tier
+      const selectedLodgingRadio = document.querySelector('input[name="lodging_tier"]:checked');
+      if (selectedLodgingRadio) {
+        state.lodgingPerNight = parseInt(selectedLodgingRadio.value, 10);
+      }
+
+      // Calculation Breakdown
+      const flightCost = flightInfo.baseFare;
+      const bagCost = state.hasBoardBag ? flightInfo.boardBagCost : 0;
+      const transferCost = flightInfo.transferCost;
+      const totalLodging = state.lodgingPerNight * state.nights;
+      const passCost = passRates[state.ridingDays] || passRates[6];
+      const totalFood = state.dailyFood * state.nights;
+
+      const perPersonTotal = flightCost + bagCost + transferCost + totalLodging + passCost + totalFood;
+      const totalForTwo = perPersonTotal * 2;
+
+      // Update DOM
+      document.getElementById('cost-per-person').innerText = `£${Math.round(perPersonTotal)}`;
+      document.getElementById('cost-for-two').innerText = `£${Math.round(totalForTwo)}`;
+
+      document.getElementById('row-flight').innerText = `£${flightCost.toFixed(2)}`;
+      document.getElementById('row-boardbag').innerText = state.hasBoardBag ? `£${bagCost.toFixed(2)}` : '£0.00';
+      document.getElementById('row-transfer').innerText = `£${transferCost.toFixed(2)}`;
+      document.getElementById('row-lodging').innerText = `£${totalLodging.toFixed(2)}`;
+      document.getElementById('row-lodging-label').innerText = `${state.nights} Nights Lodging`;
+      document.getElementById('row-pass').innerText = `£${passCost.toFixed(2)}`;
+      document.getElementById('row-pass-label').innerText = `${state.ridingDays}-Day Superskipass`;
+      document.getElementById('row-food').innerText = `£${totalFood.toFixed(2)}`;
+    }
+
+    // Preset Configurations
+    function applyPreset(preset) {
+      if (preset === 'cheapest') {
+        setDuration(7, 6);
+        selectRadio('flight_choice', 'bhx_szg_sat');
+        selectRadio('lodging_tier', '32');
+        document.getElementById('food-slider').value = 14;
+        updateFoodLabel(14);
+      } else if (preset === 'optimal5') {
+        setDuration(5, 4);
+        selectRadio('flight_choice', 'man_inn_mon_sat');
+        selectRadio('lodging_tier', '42');
+        document.getElementById('food-slider').value = 20;
+        updateFoodLabel(20);
+      } else if (preset === 'fullweek') {
+        setDuration(7, 6);
+        selectRadio('flight_choice', 'man_inn_sun_sun');
+        selectRadio('lodging_tier', '42');
+        document.getElementById('food-slider').value = 22;
+        updateFoodLabel(22);
+      }
+      updateCalc();
+    }
+
+    function selectRadio(name, value) {
+      const el = document.querySelector(`input[name="${name}"][value="${value}"]`);
+      if (el) {
+        el.checked = true;
+      }
+    }
+
+    // Tab Navigation
+    function switchTab(tabId) {
+      document.getElementById('tab-calculator').classList.add('hidden');
+      document.getElementById('tab-lodging').classList.add('hidden');
+      document.getElementById('tab-mountain').classList.add('hidden');
+
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('border-cyan-400', 'text-cyan-400', 'bg-slate-800/40');
+        btn.classList.add('border-transparent', 'text-slate-400');
+      });
+
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+      activeBtn.classList.remove('border-transparent', 'text-slate-400');
+      activeBtn.classList.add('border-cyan-400', 'text-cyan-400', 'bg-slate-800/40');
+    }
+
+    // Copy formatted text for WhatsApp
+    function copyTripSummary() {
+      const flightInfo = flightsDB[state.flightKey];
+      const costPP = document.getElementById('cost-per-person').innerText;
+      const costTwo = document.getElementById('cost-for-two').innerText;
+
+      const summaryText = 
+`🏂 *MAYRHOFEN / HINTERTUX TRIP PLAN* 🏂
+• Base: Mayrhofen (Ride Betterpark & Penken)
+• Duration: ${state.nights} Nights (${state.ridingDays} full days on snow)
+• Work Leave: 5 days annual leave (Mon–Fri)
+
+💰 *ESTIMATED COST PER PERSON: ${costPP}* (Total for 2: ${costTwo})
+-----------------------------------------
+✈️ Flight: ${flightInfo.name} (${flightInfo.airline}) = £${flightInfo.baseFare.toFixed(2)}
+🏂 Board Bag (Return): £${state.hasBoardBag ? flightInfo.boardBagCost.toFixed(2) : '0'}
+🚆 Airport Train Transfer: £${flightInfo.transferCost.toFixed(2)}
+🏠 Lodging (${state.nights}N near Bahnhof): £${(state.lodgingPerNight * state.nights).toFixed(2)}
+🎟 ${state.ridingDays}-Day Superskipass (Glacier + Valley): £${(passRates[state.ridingDays]).toFixed(2)}
+🚌 Glacier Ski Bus: FREE
+🛒 Food & Spending: £${(state.dailyFood * state.nights).toFixed(2)}
+
+100% snow guaranteed at 3,250m glacier. You keen?`;
+
+      // Copy text using textarea fallback
+      const tempTextArea = document.createElement("textarea");
+      tempTextArea.value = summaryText;
+      document.body.appendChild(tempTextArea);
+      tempTextArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempTextArea);
+
+      const confirmEl = document.getElementById('copy-confirmation');
+      confirmEl.classList.remove('hidden');
+      setTimeout(() => {
+        confirmEl.classList.add('hidden');
+      }, 3500);
+    }
+
+    // Initialize on page load
+    window.onload = function() {
+      lucide.createIcons();
+      updateCalc();
+    };
+  </script>
+</body>
+</html>
